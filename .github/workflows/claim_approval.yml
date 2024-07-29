@@ -1,0 +1,39 @@
+name: Claim Approval
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  claim_approval:
+    runs-on: ubuntu-latest
+    if: github.event.issue.labels.*.name contains 'candidate-claim'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Update CLAIMS.md
+        run: |
+          CANDIDATE_NUMBER=$(echo "${{ github.event.issue.title }}" | grep -oP '\d+')
+          USERNAME=${{ github.event.issue.user.login }}
+          echo "| $CANDIDATE_NUMBER | @$USERNAME | In Progress |" >> CLAIMS.md
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add CLAIMS.md
+          git commit -m "Update CLAIMS.md for dual AGN candidate $CANDIDATE_NUMBER"
+          git push
+
+      - name: Create branch for user
+        run: |
+          CANDIDATE_NUMBER=$(echo "${{ github.event.issue.title }}" | grep -oP '\d+')
+          git checkout -b "analysis-candidate-$CANDIDATE_NUMBER"
+          git push origin "analysis-candidate-$CANDIDATE_NUMBER"
+
+      - name: Comment on issue
+        run: |
+          CANDIDATE_NUMBER=$(echo "${{ github.event.issue.title }}" | grep -oP '\d+')
+          USERNAME=${{ github.event.issue.user.login }}
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d "{\"body\": \"@${USERNAME} Your claim for row $CANDIDATE_NUMBER has been approved. You can now push your changes to branch 'analysis-candidate-$CANDIDATE_NUMBER'.\"}" \
+            https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments
