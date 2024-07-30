@@ -1,4 +1,4 @@
-# DRAGONCandidates
+# DRAGON Candidates PDR
 This repository serves as the public data release for all of the DRAGON candidates. For details on the model, please go to the [DRAGON_CNN](https://github.com/iam37/DRAGON_CNN/tree/main) repository. 
 
 We intend for the DRAGON Dual AGN candidates to be an unstructured *public collaboration*. We have made all of the data on these candidates
